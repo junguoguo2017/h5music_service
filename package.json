@@ -1,0 +1,25 @@
+{
+  "name": "music_api_sever",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon ./app.js",
+    "prd":"pm2 ./app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "koa-cors": "^0.0.16",
+    "koa-router": "^10.1.1",
+    "mongoose": "^6.1.4",
+    "node-fetch": "2.6.6",
+    "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
