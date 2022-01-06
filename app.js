@@ -29,6 +29,6 @@ app.on('error', (err, ctx) => {
 });
 
 // 设置端口监听
-app.listen(3000, () => {
+app.listen(9527, () => {
   console.log('端口号是3000')
 })
