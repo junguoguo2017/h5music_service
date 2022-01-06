@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon ./app.js",
-    "prd":"pm2 ./app.js",
+    "prd":"pm2 start ./app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
