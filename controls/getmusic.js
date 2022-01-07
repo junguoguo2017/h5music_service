@@ -9,9 +9,10 @@ const apireq = options => new Promise((resolve, reject) => request(options, (err
     }
 }))
 
-const getdata = async (requestBody,page)=>{
-
+const getdata = async (requestBody)=>{
+    
     let limit = requestBody.pageSize || 10
+    let page = requestBody.page || 1
     const querydata = await MusicModel.find({$or:[
        {
         author:{
@@ -24,7 +25,7 @@ const getdata = async (requestBody,page)=>{
         }
        }
     ]}).skip((page - 1)*parseInt(limit)).limit(parseInt(limit));
-
+   
     if(querydata.length>0){
         return {
             code:0,
@@ -41,12 +42,17 @@ const getdata = async (requestBody,page)=>{
             ...requestBody,
         }
     })
+
     const parseData = JSON.parse(body)
+   
     const {data} = parseData
-    for(item in data){
+   
+    for(item of data){
         const result = await MusicModel.find({songid:item.songid}); // 存第一条
+      
         if(result.length==0){
             let musicEntity = new MusicModel(item)
+           
             try {
                 await musicEntity.save();
                 console.log(`导入数据成功`);
@@ -63,7 +69,7 @@ const getdata = async (requestBody,page)=>{
 const queryMusic = async ctx => {
     let requestBody = ctx.query;
     try{
-       const parseData = await getdata(requestBody,page)
+       const parseData = await getdata(requestBody)
         ctx.body = {
             code:0,
             data:parseData.data
