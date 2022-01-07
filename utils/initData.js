@@ -41,12 +41,13 @@ class InitDataService {
         await tasks_1();
         if (singersFlag ) {
           return {
+              msg:'导入完成'
           };
         }
       } catch (error) {
         console.log("错误:\n", error);
         if (!singersFlag) {
-            if (!singersFlag) return { msg: 'Goods 数据导入失败...' };
+            if (!singersFlag) return { msg: ' 数据导入失败...' };
         } 
       }
     } else {

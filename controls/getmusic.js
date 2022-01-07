@@ -39,7 +39,6 @@ const getdata = async (requestBody,page)=>{
         },
         form:{
             ...requestBody,
-            page
         }
     })
     const parseData = JSON.parse(body)
@@ -63,7 +62,6 @@ const getdata = async (requestBody,page)=>{
 }
 const queryMusic = async ctx => {
     let requestBody = ctx.query;
-    let page = 1
     try{
        const parseData = await getdata(requestBody,page)
         ctx.body = {
@@ -73,6 +71,7 @@ const queryMusic = async ctx => {
     }catch(e){
         ctx.body={
             code:300,
+            msg:JSON.stringify(e)
         }
     }
    
