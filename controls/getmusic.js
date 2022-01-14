@@ -1,4 +1,6 @@
 const request = require('request')
+const qqMusic = require('qq-music-api');
+const neteaseMusic = require('NeteaseCloudMusicApi')
 const apiurl = 'http://www.zgei.com'
 const MusicModel = require('../model/music')
 const apireq = options => new Promise((resolve, reject) => request(options, (err, response, body) => {
@@ -25,7 +27,7 @@ const getdata = async (requestBody)=>{
         }
        }
     ]}).skip((page - 1)*parseInt(limit)).limit(parseInt(limit));
-   
+    
     if(querydata.length>0){
         return {
             code:0,
@@ -42,11 +44,11 @@ const getdata = async (requestBody)=>{
             ...requestBody,
         }
     })
-
+    console.log(body)
     const parseData = JSON.parse(body)
    
     const {data} = parseData
-   
+
     for(item of data){
         const result = await MusicModel.find({songid:item.songid}); // 存第一条
       
@@ -66,14 +68,18 @@ const getdata = async (requestBody)=>{
 
     return parseData
 }
-const queryMusic = async ctx => {
-    let requestBody = ctx.query;
+
+const querymusic = async ctx => {
+    let body = ctx.query;
+
     try{
-       const parseData = await getdata(requestBody)
+        const parseData = await getdata(body)
+        console.log(parseData)
         ctx.body = {
             code:0,
             data:parseData.data
         }
+        
     }catch(e){
         ctx.body={
             code:300,
@@ -81,9 +87,143 @@ const queryMusic = async ctx => {
         }
     }
    
-    
- 
+}
+const queryQQMusic = async ctx => {
+    let {
+        keywords='周杰伦',
+        type=0,
+        pageNo=1,
+        pageSize=10
+    } = ctx.query;
+    const params = {
+        key:keywords,
+        t:type,//默认为 0 // 0：单曲，2：歌单，7：歌词，8：专辑，9：歌手，12：mv
+        pageNo,
+        pageSize
+    }
+    try{
+        const parseData = await qqMusic.api('search', params)
+        if(parseData.result===100){
+            ctx.body = {
+                code:0,
+                data:parseData.data
+            }
+        }else{
+            ctx.body = parseData
+        }
+        
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
+const queryQQSongMsg = async ctx => {
+    // 获取歌曲信息
+    let {
+        id
+    } = ctx.query;
+    const params = {
+        songmid:id,
+    }
+    try{
+        const parseData = await qqMusic.api('song', params)
+        if(parseData.result===100){
+            ctx.body = {
+                code:0,
+                data:parseData.data
+            }
+        }else{
+            ctx.body = parseData
+        }
+        
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
+const queryQQSongUrl = async ctx => {
+    // 获取歌曲播放url
+    let {
+        id
+    } = ctx.query;
+    const params = {
+        id:id,
+    }
+    try{
+        const parseData = await qqMusic.api('song/urls', params)
+        if(parseData.result===100){
+            ctx.body = {
+                code:0,
+                data:parseData.data
+            }
+        }else{
+            ctx.body = parseData
+        }
+        
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
+const queryNeteaseMusic = async ctx => {
+    let {
+        keywords='周杰伦',
+        type=1,
+        pageNo=1,
+        pageSize=10
+    } = ctx.query;
+    const params = {
+        keywords,
+        type,//默认为 1 即单曲 , 取值意义 : 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
+        limit:pageSize,
+        offset:(pageNo-1)*pageSize
+    }
+    try{
+        const parseData = await neteaseMusic.search(params)
+        console.log(neteaseMusic)
+
+        // http://music.163.com/song/media/outer/url?id=1306459970.mp3
+        if(parseData.status === 200){
+            ctx.body = {
+                code:0,
+                data:parseData.body
+            }
+        }else{
+            ctx.body = parseData
+        }
+       
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
+const queryMusics =  async ctx => {
+    let {
+        from='qq'
+    } = ctx.query;
+    if(from=='qq'){
+        return queryQQMusic(ctx)
+    }else{
+        return queryNeteaseMusic(ctx)
+    }
 }
 module.exports = {
-    queryMusic
+    queryQQMusic,
+    queryNeteaseMusic,
+    queryQQSongMsg,
+    queryQQSongUrl,
+    queryMusics,
+    querymusic
 }

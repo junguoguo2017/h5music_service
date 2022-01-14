@@ -10,7 +10,12 @@ router.get('/initsinger',async (ctx)=>{
 
 router.post('/api/login', login.loginSignIn);
 router.post('/api/register', login.register);
-router.get('/querymusic',getmusic.queryMusic)
+router.get('/querymusic',getmusic.querymusic)
+router.get('/queryMusics',getmusic.queryMusics)
+
+router.get('/queryQQSong',getmusic.queryQQSongMsg)
+router.get('/queryQQSongUrl',getmusic.queryQQSongUrl)
+
 
 // 导出路由
 module.exports = router;

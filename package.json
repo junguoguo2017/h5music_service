@@ -5,18 +5,20 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon ./app.js",
-    "prd":"pm2 start ./app.js",
+    "prd": "pm2 start ./app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "NeteaseCloudMusicApi": "^4.2.0",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "koa-cors": "^0.0.16",
     "koa-router": "^10.1.1",
     "mongoose": "^6.1.4",
     "node-fetch": "2.6.6",
+    "qq-music-api": "^1.0.3",
     "request": "^2.88.2"
   },
   "devDependencies": {
