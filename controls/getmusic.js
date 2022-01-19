@@ -1,7 +1,7 @@
 const request = require('request')
 const qqMusic = require('qq-music-api');
 const neteaseMusic = require('NeteaseCloudMusicApi')
-const apiurl = 'http://www.zgei.com'
+const apiurl = 'https://music.liuzhijin.cn' //'http://www.zgei.com'
 const MusicModel = require('../model/music')
 const apireq = options => new Promise((resolve, reject) => request(options, (err, response, body) => {
     if (err) {
@@ -10,7 +10,54 @@ const apireq = options => new Promise((resolve, reject) => request(options, (err
         resolve(body);
     }
 }))
+async function downloadMp3(url){
+  return new Promise((resolve, reject) =>{
+    var req = request(url, {timeout: 10000, pool: false});
+   
+    req.setMaxListeners(50);
+    req.setHeader('user-agent', 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36');
 
+    req.on('error', function(err) {
+        reject()
+        throw err;
+    });
+    
+    req.on('response', function(res) {
+        res.setEncoding("binary");
+        var fileData = "";
+
+        res.on('data', function (chunk) {
+            fileData+=chunk; 
+          
+        });
+        res.on('end',function(){
+            
+            resolve(fileData)
+        });
+    })
+  })
+    
+}
+const downloadUrl = async ctx => {
+    let {
+        url
+    } = ctx.query;
+    try{
+        const fileData = await downloadMp3(url)
+        
+        ctx.body = {
+            code:0,
+            data:fileData
+        }
+        console.log(fileData)
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
 const getdata = async (requestBody)=>{
     
     let limit = requestBody.pageSize || 10
@@ -209,6 +256,35 @@ const queryNeteaseMusic = async ctx => {
     }
    
 }
+const queryNeteaseSongMsg=async ctx => {
+    const {id} = ctx.query
+    const params = {
+        id
+    }
+    try{
+        const lyricData = await neteaseMusic.lyric(params)
+        const urlData = await neteaseMusic.song_url(params)
+        if(lyricData.status === 200&&urlData.status ===200){
+            ctx.body = {
+                code:0,
+                data:{
+                    songid:id,
+                    type:'netease',
+                    url:urlData.body.data[0].url,
+                    lyric:lyricData.body.lrc.lyric
+                }
+            }
+        }else{
+            ctx.body = parseData
+        }
+       
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+}
 const queryMusics =  async ctx => {
     let {
         from='qq'
@@ -225,5 +301,7 @@ module.exports = {
     queryQQSongMsg,
     queryQQSongUrl,
     queryMusics,
-    querymusic
+    querymusic,
+    queryNeteaseSongMsg,
+    downloadUrl
 }

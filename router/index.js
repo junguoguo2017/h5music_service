@@ -16,6 +16,8 @@ router.get('/queryMusics',getmusic.queryMusics)
 router.get('/queryQQSong',getmusic.queryQQSongMsg)
 router.get('/queryQQSongUrl',getmusic.queryQQSongUrl)
 
+router.get('/queryNeteaseSongMsg',getmusic.queryNeteaseSongMsg)
+router.get('/downloadUrl',getmusic.downloadUrl)
 
 // 导出路由
 module.exports = router;
