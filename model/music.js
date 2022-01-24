@@ -34,6 +34,10 @@ const musicSchem = new mongoose.Schema({
   url:{
     type: String,
     default: ''
+  },
+  existUrl:{
+    type:Boolean,
+    default:true
   }
 });
 //最后导出模型

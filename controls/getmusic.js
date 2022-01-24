@@ -10,58 +10,9 @@ const apireq = options => new Promise((resolve, reject) => request(options, (err
         resolve(body);
     }
 }))
-async function downloadMp3(url){
-  return new Promise((resolve, reject) =>{
-    var req = request(url, {timeout: 10000, pool: false});
-   
-    req.setMaxListeners(50);
-    req.setHeader('user-agent', 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36');
 
-    req.on('error', function(err) {
-        reject()
-        throw err;
-    });
-    
-    req.on('response', function(res) {
-        res.setEncoding("binary");
-        var fileData = "";
-
-        res.on('data', function (chunk) {
-            fileData+=chunk; 
-          
-        });
-        res.on('end',function(){
-            
-            resolve(fileData)
-        });
-    })
-  })
-    
-}
-const downloadUrl = async ctx => {
-    let {
-        url
-    } = ctx.query;
-    try{
-        const fileData = await downloadMp3(url)
-        
-        ctx.body = {
-            code:0,
-            data:fileData
-        }
-        console.log(fileData)
-    }catch(e){
-        ctx.body={
-            code:300,
-            msg:JSON.stringify(e)
-        }
-    }
-   
-}
 const getdata = async (requestBody)=>{
-    
-    let limit = requestBody.pageSize || 10
-    let page = requestBody.page || 1
+    const {pageSize=10,page=1} = requestBody
     const querydata = await MusicModel.find({$or:[
        {
         author:{
@@ -73,14 +24,15 @@ const getdata = async (requestBody)=>{
             $regex:requestBody.input,
         }
        }
-    ]}).skip((page - 1)*parseInt(limit)).limit(parseInt(limit));
+    ]}).skip((page - 1)*parseInt(pageSize)).limit(parseInt(pageSize));
     
     if(querydata.length>0){
         return {
             code:0,
-            data:querydata
+            data:querydata,
         }
     }
+  
     const body = await apireq({
         url:apiurl,
         method:'POST',
@@ -89,28 +41,30 @@ const getdata = async (requestBody)=>{
         },
         form:{
             ...requestBody,
+            pageSize,
+            page
         }
     })
-    console.log(body)
+  
     const parseData = JSON.parse(body)
-   
-    const {data} = parseData
+    console.log('-----',parseData)
+    // const {data} = parseData
 
-    for(item of data){
-        const result = await MusicModel.find({songid:item.songid}); // 存第一条
+    // for(item of data){
+    //     const result = await MusicModel.find({songid:item.songid}); // 存第一条
       
-        if(result.length==0){
-            let musicEntity = new MusicModel(item)
+    //     if(result.length==0){
+    //         let musicEntity = new MusicModel(item)
            
-            try {
-                await musicEntity.save();
-                console.log(`导入数据成功`);
-                } catch (error) {
+    //         try {
+    //             await musicEntity.save();
+    //             console.log(`导入数据成功`);
+    //             } catch (error) {
                 
-                console.log(' 数据导入失败...');
-                }
-        }
-    }
+    //             console.log(' 数据导入失败...');
+    //             }
+    //     }
+    // }
     
 
     return parseData
@@ -118,10 +72,8 @@ const getdata = async (requestBody)=>{
 
 const querymusic = async ctx => {
     let body = ctx.query;
-
     try{
         const parseData = await getdata(body)
-        console.log(parseData)
         ctx.body = {
             code:0,
             data:parseData.data
@@ -134,6 +86,72 @@ const querymusic = async ctx => {
         }
     }
    
+}
+
+const insertMusic = async ctx=>{
+    let item= ctx.request.body
+    const result = await MusicModel.find({songid:item.songid});
+    if(result.length==0){
+        let musicEntity = new MusicModel(item)    
+        try {
+            await musicEntity.save();
+            ctx.body={
+                code:0,
+                msg:`数据保存成功`,
+            }
+        } catch (error) {
+            ctx.body={
+                code:0,
+                msg:`数据保存失败`,
+            }
+        }
+    }else{
+        ctx.body={
+            code:0,
+            msg:`已经存在`,
+        }   
+    }
+    
+}
+const removeOneMusic = async ctx=>{
+    let {
+        id
+    } = ctx.query;
+    const result = await MusicModel.remove({songid:id});
+    ctx.body={
+        code:0,
+        msg:`删除成功${result.deletedCount}`,
+    }
+   
+}
+const getOneMusicMsg = async ctx=>{
+    let {
+        id
+    } = ctx.query;
+    const result = await MusicModel.find({songid:id});
+    if(result.length==0){
+        ctx.body = {
+            code:300,
+            msg:'找不到相关数据'
+        }
+    }else{
+        ctx.body = {
+            code:0,
+            data:result
+        } 
+    }
+}
+
+const removeMusics = async ctx=>{
+    let {
+        ids
+    } = ctx.query;
+    const result = await MusicModel.remove({songid:{$in:ids}}); 
+    console.log(result)
+   ctx.body={
+       code:0,
+       msg:'删除成功'
+   }
 }
 const queryQQMusic = async ctx => {
     let {
@@ -167,6 +185,49 @@ const queryQQMusic = async ctx => {
     }
    
 }
+const getHotKeys = async ctx => {
+    // 获取歌曲信息
+    try{
+        const parseData = await qqMusic.api('search/hot')
+        if(parseData.result===100){
+            ctx.body = {
+                code:0,
+                data:parseData.data
+            }
+        }else{
+            ctx.body = parseData
+        }
+        
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
+const getHotMusics = async ctx => {
+    // 获取歌曲信息
+    try{
+        const parseData = await qqMusic.api('singer/songs')
+        if(parseData.result===100){
+            ctx.body = {
+                code:0,
+                data:parseData.data
+            }
+        }else{
+            ctx.body = parseData
+        }
+        
+    }catch(e){
+        ctx.body={
+            code:300,
+            msg:JSON.stringify(e)
+        }
+    }
+   
+}
+
 const queryQQSongMsg = async ctx => {
     // 获取歌曲信息
     let {
@@ -297,11 +358,17 @@ const queryMusics =  async ctx => {
 }
 module.exports = {
     queryQQMusic,
+    getHotKeys,
+    getHotMusics,
     queryNeteaseMusic,
     queryQQSongMsg,
     queryQQSongUrl,
     queryMusics,
     querymusic,
     queryNeteaseSongMsg,
-    downloadUrl
+  
+    removeOneMusic,
+    removeMusics,
+    getOneMusicMsg,
+    insertMusic
 }
