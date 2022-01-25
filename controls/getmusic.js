@@ -113,6 +113,25 @@ const insertMusic = async ctx=>{
     }
     
 }
+const updateMusic = async ctx=>{
+    let item= ctx.request.body
+    const result = await MusicModel.update({songid:item.songid},{
+        ...item
+    });
+    console.log(result)
+    if(result.length==0){
+        ctx.body={
+            code:0,
+            msg:`数据更新成功`,
+        }
+    }else{
+        ctx.body={
+            code:0,
+            msg:`数据更新出错了`,
+        }   
+    }
+    
+}
 const removeOneMusic = async ctx=>{
     let {
         id
@@ -370,5 +389,6 @@ module.exports = {
     removeOneMusic,
     removeMusics,
     getOneMusicMsg,
-    insertMusic
+    insertMusic,
+    updateMusic
 }

@@ -14,6 +14,7 @@ router.get('/querymusic',getmusic.querymusic)
 router.get('/getOneMusicMsg',getmusic.getOneMusicMsg)
 router.get('/removeOneMusic',getmusic.removeOneMusic)
 router.post('/insertMusic',getmusic.insertMusic)
+router.post('/updateMusic',getmusic.updateMusic)
 
 
 
