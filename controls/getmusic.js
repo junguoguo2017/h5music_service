@@ -26,7 +26,7 @@ const getdata = async (requestBody)=>{
        }
     ]}).skip((page - 1)*parseInt(pageSize)).limit(parseInt(pageSize));
     
-    if(querydata.length>0){
+    if(querydata.length>10){
         return {
             code:0,
             data:querydata,
